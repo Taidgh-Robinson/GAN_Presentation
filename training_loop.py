@@ -3,31 +3,25 @@ import torch.nn as nn
 import torch.optim as optim
 from models import *
 from helper_functions import gen_images
-from data_loader import train_loader
+from data_loader import mnist_train_loader
 import os
-from main import device
-num_epoch = 500
-batch_size = 64
+from variables import device, NUM_EPOCH
 
 
-def train_model(G, D, shape_of_noise, name_of_model):
-    
+def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
     loss = nn.BCELoss().to(device)
     optimizer_G = optim.Adam(G.parameters(), lr = 0.0002)
     optimizer_D = optim.Adam(D.parameters(), lr = 0.0001)
     
-    for epoch in range(num_epoch):
+    for epoch in range(NUM_EPOCH):
         for i, (real_images, _) in enumerate(train_loader):
             
             size_of_current_batch = real_images.size(0)
 
             #Generate noise based on the input shape of the model we are training            
-            if(len(shape_of_noise) == 1 ):
-                noise = torch.randn(size_of_current_batch, shape_of_noise[0])
-            elif(len(shape_of_noise) == 2):
-                noise = torch.randn(size_of_current_batch, 1, shape_of_noise[0], shape_of_noise[1])
+            noise = torch.randn(size_of_current_batch, shape_of_noise)
 
             #Generate some fake noise
             fake_data = G(noise.to(device))
@@ -76,13 +70,13 @@ def train_model(G, D, shape_of_noise, name_of_model):
         if(epoch % 10 == 0):
             images = gen_images(G, 1, shape_of_noise)
             for i, image in enumerate(images):
-                image_path = os.path.join(output_directory, str(epoch)+"image_"+str(i)+".jpg")
+                image_path = os.path.join(output_directory, str(epoch)+".jpg")
                 image.save(image_path)
 
     torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
 
-G = BBGenerator(64)
-D = BBDescriminator()
-train_model(G, D, [64], "BBGAN")
+G = BiggerGenerator(64, 28*28)
+D = BiggerDiscriminator(28*28)
+train_linear_model(G, D, 64, "BiggerGAN", mnist_train_loader)
