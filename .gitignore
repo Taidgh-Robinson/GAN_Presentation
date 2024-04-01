@@ -1,0 +1,5 @@
+__pycache__
+data/MNIST
+data/birdcalls/
+data/cifar-10-python.tar.gz
+data/cifar-10-batches-py/
