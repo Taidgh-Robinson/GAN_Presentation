@@ -34,44 +34,49 @@ class BBDescriminator(nn.Module):
     
     def forward(self, x):
         return self.model(x)
-    
-class BiggerGenerator(nn.Module):
-    def __init__(self, noise_size, output_size):
+
+
+class MNIST_DCGAN_G(nn.Module):
+    def __init__(self, noise_size):
         self.noise_size = noise_size
-        self.output_size = output_size
-        super(BiggerGenerator, self).__init__()
+        super(MNIST_DCGAN_G, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(self.noise_size, 64),
-            nn.Tanh(),
-            nn.Linear(64, 128), #One hidden layer
-            nn.ReLU(),
-            nn.Linear(128, 256), #Second hidden layer
-            nn.ReLU(),
-            nn.Linear(256, 512), #Third hidden layer
-            nn.ReLU(),
-            nn.Linear(512, self.output_size),
+            nn.Linear(self.noise_size, 256*7*7), #Project
+            nn.ReLU(True),
+            nn.Unflatten(1, (256, 7, 7)),  # Reshape
+            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=0, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=2, stride=2, padding=3, bias=False),
+            nn.BatchNorm2d(1),
             nn.Tanh()
         )
+    
     def forward(self, x):
         return self.model(x)
-
-
-class BiggerDiscriminator(nn.Module):
-    def __init__(self, input_size):
-        self.input_size = input_size
-        super(BiggerDiscriminator, self).__init__()
+    
+class MNIST_DCGAN_D(nn.Module):
+    def __init__(self):
+        super(MNIST_DCGAN_D, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(self.input_size, 1024),
-            nn.ReLU(), 
-            nn.Linear(1024, 512), #One hidden layer
-            nn.ReLU(), 
-            nn.Linear(512, 256), #Second hidden layer
-            nn.ReLU(), 
-            nn.Linear(256, 64), #Third hidden layer
-            nn.ReLU(), 
-            nn.Linear(64, 1),
+            nn.Conv2d(in_channels=1, out_channels=2, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=3, padding=0, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(in_channels=4, out_channels=1, kernel_size=4, stride=2, padding=0, bias=False),
             nn.Sigmoid()
         )
-        
-    def forward(self, x):
+    
+    def forward(self, x): 
         return self.model(x)
+
+def weights_init(model):
+    classname = model.__class__.__name__
+    if classname.find('Conv') != -1:
+        model.weight.data.normal_(0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        model.weight.data.normal_(1.0, 0.02)
+        model.bias.data.fill_(0)

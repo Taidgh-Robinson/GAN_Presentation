@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from scipy.io.wavfile import write
 import os
 from models import *
-from helper_functions import gen_images, gen_sound
-from data_loader import birdcall_train_loader
+from helper_functions import gen_images
 from variables import device, NUM_EPOCH
 
 
@@ -74,3 +72,9 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
 
     torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
+
+
+def train_convolutional_model(G, D, size_of_noisem name_of_model, train_loader):
+    G.to(device)
+    D.to(device)
+
