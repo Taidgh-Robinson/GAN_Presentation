@@ -1,20 +1,20 @@
 import torch
 from models import * 
 from helper_functions import convert_mnist_image_to_output
+from training_loop import * 
+from data_loader import * 
+
+
+noise = torch.randn(3, 64)
+mnist = load_mnist()
+
 
 G = MNIST_DCGAN_G(64)
-noise = torch.randn(1, 64)
-
-output = G(noise)[0]
-print(len(output))
-print(output.shape)
-print(len(output[0]))
-print(len(output[0].view(-1)))
-
-img = convert_mnist_image_to_output(output[0].view(-1))
 D = MNIST_DCGAN_D()
-classification = D(output)
+output = G(noise)
+print(output)
+classifcation = D(output)
+print(classifcation)
+print(classifcation.view(classifcation.size(0), -1).shape)
 
-print(classification)
-
-print(classification.shape)
+train_convolutional_model(G, D, 64, "adsfafd", mnist)

@@ -9,5 +9,7 @@ RGB_STD = [0.229, 0.224, 0.225]
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
+else: 
+    device = torch.device("cpu")
 
 

@@ -47,5 +47,3 @@ def make_birdcalls_dataloader():
     tensor_dataset = torch.utils.data.TensorDataset(torch.tensor(data))
     dataloader = torch.utils.data.DataLoader(tensor_dataset, batch_size=BATCH_SIZE, shuffle=True)
     return dataloader
-
-birdcall_train_loader = make_birdcalls_dataloader()
