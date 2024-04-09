@@ -1,0 +1,19 @@
+direction: right
+
+noise -> G
+Samples: {
+  Real Samples
+  Fake Samples
+}
+G -> Samples.Fake Samples
+
+Samples -> D
+Classifications: {
+  Real Classifications
+  Fake Classifications
+}
+D -> Classifications
+
+Classifications.Fake Classifications -> G
+Classifications -> Corrected Classifications
+Corrected Classifications -> D

@@ -14,6 +14,10 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
     optimizer_G = optim.Adam(G.parameters(), lr = 0.0002)
     optimizer_D = optim.Adam(D.parameters(), lr = 0.0001)
     
+    output_directory = "data/generated_images/"+str(name_of_model)
+    if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
     for epoch in range(NUM_EPOCH):
         for i, (real_images, _) in enumerate(train_loader):
             
@@ -26,7 +30,7 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
             fake_data = G(noise.to(device))
             #Actual mnist pictures
             real_data = real_images.view(real_images.size(0), -1).to(device)
-            #Labels for loss, 1 = MNIST, 2 = Generated 
+            #Labels for loss, 1 = MNIST, 0 = Generated 
             real_labels = torch.ones(size_of_current_batch, 1).float().to(device)
             fake_labels = torch.zeros(size_of_current_batch, 1).float().to(device)
 
@@ -60,12 +64,9 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
                 f"Discriminator Loss: {total_loss.item():.4f}, Generator Loss: {g_loss.item():.4f}"
                 )
 
-        output_directory = "data/generated_images/"+str(name_of_model)
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
         #Every 10 epochs lets save some generated images to see what our models think
         if(epoch % 10 == 0):
-            images = gen_images(G, 1, shape_of_noise)
+            images = gen_images(G, 1, shape_of_noise, False)
             for i, image in enumerate(images):
                 image_path = os.path.join(output_directory, str(epoch)+".jpg")
                 image.save(image_path)
@@ -74,13 +75,27 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
 
-def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
+def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
 
+
+
+
+def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
+    G.to(device)
+    D.to(device)
+    G.apply(weights_init)
+    D.apply(weights_init)
+
     loss = nn.BCELoss().to(device)
-    optimizer_G = optim.Adam(G.parameters(), lr = 0.0002)
-    optimizer_D = optim.Adam(D.parameters(), lr = 0.0001)
+    optimizer_G = optim.Adam(G.parameters(), lr=0.0002, betas=(0.5, 0.999))
+    optimizer_D = optim.Adam(D.parameters(), lr=0.0002, betas=(0.5, 0.999))
+
+    output_directory = "data/generated_images/"+str(name_of_model)
+    if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
     for epoch in range(NUM_EPOCH): 
         for i, (real_images, _) in enumerate(train_loader):
 
@@ -120,7 +135,15 @@ def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
                 f"Epoch [{epoch}/{NUM_EPOCH}], Batch {i}/{len(train_loader)}, "
                 f"Discriminator Loss: {total_loss.item():.4f}, Generator Loss: {g_loss.item():.4f}"
                 )
+        #Every 10 epochs lets save some generated images to see what our models think
+        if(epoch % 10 == 0):
+            images = gen_images(G, 1, size_of_noise, True)
+            for i, image in enumerate(images):
+                image_path = os.path.join(output_directory, str(epoch)+".jpg")
+                image.save(image_path)
 
+    torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
+    torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
 
 

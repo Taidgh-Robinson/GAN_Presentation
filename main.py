@@ -1,20 +1,13 @@
-import torch
 from models import * 
 from helper_functions import convert_mnist_image_to_output
 from training_loop import * 
 from data_loader import * 
 
+G = BBGenerator(64, 28*28)
+D = BBDescriminator(28*28)
+mnist_dataloader = load_mnist()
 
-noise = torch.randn(3, 64)
-mnist = load_mnist()
-
-
-G = MNIST_DCGAN_G(64)
-D = MNIST_DCGAN_D()
-output = G(noise)
-print(output)
-classifcation = D(output)
-print(classifcation)
-print(classifcation.view(classifcation.size(0), -1).shape)
-
-train_convolutional_model(G, D, 64, "adsfafd", mnist)
+#train_linear_model(G, D, 64, "BBGANLessEpoch", mnist_dataloader) 
+G = GeneratorGPT(100)
+D = DiscriminatorGPT()
+train_convolutional_model(G, D, 100, "mnistDCGAN", mnist_dataloader)

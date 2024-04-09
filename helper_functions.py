@@ -25,12 +25,14 @@ def convert_CIFAR_image_to_output(preprocessed_image):
     image = transforms.ToPILImage()(denormalized_image).convert("RGB")    
     return image
 
-def gen_images(G, number_of_images, shape_of_noise):
+def gen_images(G, number_of_images, shape_of_noise, is_convolutional):
     noise = torch.randn(number_of_images, shape_of_noise)
     images = []
     with torch.no_grad():
         fake_images = G(noise.to(device))
         for image in fake_images:
+            if(is_convolutional): 
+                image = image.view(image.size(0), -1)
             img = convert_mnist_image_to_output(image)
             images.append(img)
     return images
@@ -51,8 +53,8 @@ def convert_output_to_wav(generator_output):
     sample_rate = 22050
     return np.int16(output * 32767)
 
-def create_gif_from_images(image_folder, gif_path):    
-    image_tags = [i*10 for i in range(50)]
+def create_gif_from_images(image_folder, gif_path, length):    
+    image_tags = [i*10 for i in range(length)]
     image_filenames = [str(i)+'.jpg' for i in image_tags]
     # Create a list to store image objects
     images = []
