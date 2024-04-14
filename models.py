@@ -34,6 +34,22 @@ class BBDescriminator(nn.Module):
     def forward(self, x):
         return self.model(x)
     
+class BBDescriminatorW(nn.Module):
+    def __init__(self, input_size):
+        self.input_size = input_size
+        super(BBDescriminatorW, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(self.input_size, 128), #First hidden layer
+            nn.ReLU(),
+            nn.Linear(128, 256), #Second hidden layer
+            nn.ReLU(), 
+            nn.Linear(256, 1),
+        )
+    
+    def forward(self, x):
+        return self.model(x)
+
+    
 class BBGenerator2(nn.Module): 
     def __init__(self, noise_size, output_size):
         self.noise_size = noise_size

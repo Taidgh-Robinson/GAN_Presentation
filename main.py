@@ -1,13 +1,9 @@
-from models import * 
-from helper_functions import convert_mnist_image_to_output
-from training_loop import * 
-from data_loader import * 
+from models import BBGenerator2, BBDescriminatorW
+from training_loop import train_linear_model, train_linear_model_w
+from data_loader import load_mnist 
 
-G = BBGenerator(64, 28*28)
-D = BBDescriminator(28*28)
+G = BBGenerator2(128, 28*28)
+D = BBDescriminatorW(28*28)
 mnist_dataloader = load_mnist()
 
-#train_linear_model(G, D, 64, "BBGANLessEpoch", mnist_dataloader) 
-G = GeneratorGPT(100)
-D = DiscriminatorGPT()
-train_convolutional_model(G, D, 100, "mnistDCGAN", mnist_dataloader)
+train_linear_model_w(G, D, 128, "WGAN_Higher_LRbn", mnist_dataloader)

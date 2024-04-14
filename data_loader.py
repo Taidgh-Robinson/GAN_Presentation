@@ -6,7 +6,6 @@ from torchvision import datasets, transforms
 from variables import BATCH_SIZE
 from variables import RGB_MEAN, RGB_STD
 
-
 def load_mnist():
     mnist_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -18,8 +17,7 @@ def load_mnist():
 
     return mnist_train_loader
 
-
-
+#Not used
 def load_cifar10():
     CIFAR10_transform = transforms.Compose([
         transforms.ToTensor(),  # Convert image to PyTorch tensor
@@ -33,6 +31,7 @@ def load_cifar10():
     cat_subset = torch.utils.data.Subset(CIFAR_dataset, cat_indices)
     return cat_subset
 
+#Not used
 def load_all_birdcalls():
     directory = "data/birdcalls/raw"
     files = os.listdir(directory)
@@ -42,6 +41,7 @@ def load_all_birdcalls():
         wavs.append(torch.tensor(call))
     return np.array(wavs)
 
+#Not used
 def make_birdcalls_dataloader(): 
     data = load_all_birdcalls()
     tensor_dataset = torch.utils.data.TensorDataset(torch.tensor(data))

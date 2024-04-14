@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import os
-from models import *
+from models import weights_init
 from helper_functions import gen_images
-from variables import device, NUM_EPOCH
-
+from variables import device, NUM_EPOCH, N_CRITIC
+from loss_functions import wasserstein_loss
 
 def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
     G.to(device)
@@ -26,7 +26,7 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
             #Generate noise based on the input shape of the model we are training            
             noise = torch.randn(size_of_current_batch, shape_of_noise)
 
-            #Generate some fake noise
+            #Generate some fake "images"
             fake_data = G(noise.to(device))
             #Actual mnist pictures
             real_data = real_images.view(real_images.size(0), -1).to(device)
@@ -74,13 +74,60 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
     torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
-
 def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
+    optimizer_G = optim.RMSprop(G.parameters(), lr = 0.0001)
+    optimizer_D = optim.RMSprop(D.parameters(), lr = 0.00005)
+    
+    output_directory = "data/generated_images/"+str(name_of_model)
+    if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
+    for epoch in range(NUM_EPOCH):
+        for i, (real_images, _) in enumerate(train_loader): 
+            batch_size = real_images.size(0)
+
+            for _ in range(N_CRITIC):
+                noise = torch.randn(batch_size, size_of_noise).to(device)
+                fake_data = G(noise)
+                real_data = real_images.view(real_images.size(0), -1).to(device)
+                
+                optimizer_D.zero_grad()
+                d_real = D(real_data)
+                d_fake = D(fake_data.detach())
+
+                d_loss = wasserstein_loss(d_real, d_fake)
+                d_loss.backward()
+                #clip weights
+                for param in D.parameters():
+                    param.data.clamp_(-0.01, 0.01)
+
+                optimizer_D.step()
 
 
+            optimizer_G.zero_grad()
+            noise = torch.randn(batch_size, size_of_noise).to(device)
+            fake_data = G(noise)
+            fake_score = D(fake_data)
+            g_loss = -1. * torch.mean(fake_score)
+            g_loss.backward()
+            optimizer_G.step()
 
+            if i % 100 == 0:
+                print(
+                f"Epoch [{epoch}/{NUM_EPOCH}], Batch {i}/{len(train_loader)}, "
+                f"Discriminator Loss: {d_loss.item():.4f}, Generator Loss: {g_loss.item():.4f}"
+                )
+        
+        if(epoch % 10 == 0):
+            images = gen_images(G, 1, size_of_noise, False)
+            for i, image in enumerate(images):
+                image_path = os.path.join(output_directory, str(epoch)+".jpg")
+                image.save(image_path)
+
+    torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
+    torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
 def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
@@ -144,6 +191,3 @@ def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
 
     torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
-
-
-

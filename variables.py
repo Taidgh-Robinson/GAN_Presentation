@@ -1,9 +1,8 @@
 import torch
-from models import *
 
 BATCH_SIZE = 128
-NUM_EPOCH = 250
-
+NUM_EPOCH = 50
+N_CRITIC = 5
 RGB_MEAN = [0.485, 0.456, 0.406]
 RGB_STD = [0.229, 0.224, 0.225]
 

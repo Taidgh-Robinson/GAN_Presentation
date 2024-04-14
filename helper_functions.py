@@ -67,3 +67,9 @@ def create_gif_from_images(image_folder, gif_path, length):
     
     # Save the images as a GIF
     images[0].save(gif_path, save_all=True, append_images=images[1:], duration=500, loop=0)
+
+def load_model(model, state_dict_path):
+    state_dict = torch.load(state_dict_path)
+    model.load_state_dict(state_dict)
+    model.to(device)
+    return model
