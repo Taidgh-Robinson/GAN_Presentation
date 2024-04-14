@@ -14,7 +14,6 @@ def convert_mnist_image_to_output(generator_output):
     image = Image.fromarray(output)
     return image
 
-
 def convert_CIFAR_image_to_output(preprocessed_image):
     inverse_normalize = transforms.Normalize(
     mean=[-m/s for m, s in zip(RGB_MEAN, RGB_STD)],
@@ -46,7 +45,6 @@ def gen_sound(G, number_of_clips, shape_of_noise):
             wav = convert_output_to_wav(clip)
             clips.append(wav)
     return clips
-
 
 def convert_output_to_wav(generator_output):
     output = generator_output.cpu().detach().numpy()

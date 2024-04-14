@@ -4,7 +4,7 @@ import torch.optim as optim
 import os
 from models import weights_init
 from helper_functions import gen_images
-from variables import device, NUM_EPOCH, N_CRITIC
+from variables import device, NUM_EPOCH, N_DISCRIMINATOR
 from loss_functions import wasserstein_loss
 
 def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
@@ -35,9 +35,9 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
             fake_labels = torch.zeros(size_of_current_batch, 1).float().to(device)
 
             optimizer_D.zero_grad()
-            #How wrong was our descriminator on the MNIST images
+            #How wrong was our Discriminator on the MNIST images
             real_loss = loss(D(real_data), real_labels)
-            #How wrong was our descriminator on the Generated images
+            #How wrong was our Discriminator on the Generated images
             fake_loss = loss(D(fake_data.detach()), fake_labels)
             #Add them to find out how wrong it was in total
             total_loss = real_loss + fake_loss
@@ -49,7 +49,7 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
             optimizer_G.zero_grad()
             #Generate the fake data again for new testing (IIRC this is pytorch-fu)
             fake_data = G(noise.to(device))
-            #What does our more trained descriminator think about these images
+            #What does our more trained Discriminator think about these images
             fake_output = D(fake_data.to(device))
             #Loss for the generator is what datapoints did it not predict 1 on (i.e. if it predictied 100% 1's our loss would be 0)
             g_loss = loss(fake_output, real_labels)
@@ -77,8 +77,8 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
 def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
-    optimizer_G = optim.RMSprop(G.parameters(), lr = 0.0001)
-    optimizer_D = optim.RMSprop(D.parameters(), lr = 0.00005)
+    optimizer_G = optim.RMSprop(G.parameters(), lr = 0.0005)
+    optimizer_D = optim.RMSprop(D.parameters(), lr = 0.0005)
     
     output_directory = "data/generated_images/"+str(name_of_model)
     if not os.path.exists(output_directory):
@@ -88,7 +88,7 @@ def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
         for i, (real_images, _) in enumerate(train_loader): 
             batch_size = real_images.size(0)
 
-            for _ in range(N_CRITIC):
+            for _ in range(N_DISCRIMINATOR):
                 noise = torch.randn(batch_size, size_of_noise).to(device)
                 fake_data = G(noise)
                 real_data = real_images.view(real_images.size(0), -1).to(device)
@@ -129,6 +129,7 @@ def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
     torch.save(G.state_dict(), "output/G" + str(name_of_model) + ".pth")
     torch.save(D.state_dict(), "output/D" + str(name_of_model) + ".pth")
 
+#Not used, was for work on DCGAN
 def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
@@ -155,10 +156,10 @@ def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
             fake_labels = torch.zeros(size_of_current_batch, 1).float().to(device)
             
             optimizer_D.zero_grad()
-            #How wrong was our descriminator on the MNIST images
+            #How wrong was our Discriminator on the MNIST images
             classification_real = D(real_data)
             real_loss = loss(classification_real.view(classification_real.size(0), -1), real_labels)
-            #How wrong was our descriminator on the Generated images
+            #How wrong was our Discriminator on the Generated images
             classification_fake = D(fake_data.detach())
             fake_loss = loss(classification_fake.view(classification_fake.size(0), -1), fake_labels)
             #Add them to find out how wrong it was in total
@@ -169,7 +170,7 @@ def train_convolutional_model(G, D, size_of_noise, name_of_model, train_loader):
             optimizer_D.step()
 
             fake_data = G(noise.to(device))
-            #What does our more trained descriminator think about these images
+            #What does our more trained Discriminator think about these images
             fake_output = D(fake_data.to(device))
             #Loss for the generator is what datapoints did it not predict 1 on (i.e. if it predictied 100% 1's our loss would be 0)
             g_loss = loss(fake_output.view(fake_output.size(0), -1), real_labels)
