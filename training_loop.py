@@ -77,8 +77,8 @@ def train_linear_model(G, D, shape_of_noise, name_of_model, train_loader):
 def train_linear_model_w(G, D, size_of_noise, name_of_model, train_loader):
     G.to(device)
     D.to(device)
-    optimizer_G = optim.RMSprop(G.parameters(), lr = 0.0005)
-    optimizer_D = optim.RMSprop(D.parameters(), lr = 0.0005)
+    optimizer_G = optim.Adam(G.parameters(), lr = 0.00007)
+    optimizer_D = optim.Adam(D.parameters(), lr = 0.00001)
     
     output_directory = "data/generated_images/"+str(name_of_model)
     if not os.path.exists(output_directory):
